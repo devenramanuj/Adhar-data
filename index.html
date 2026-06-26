@@ -3,244 +3,823 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>આંગણવાડી ડિજિટલ રજીસ્ટર</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>આંગણવાડી ડોક્યુમેન્ટ મેનેજર</title>
     <style>
-        .hidden { display: none; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FFFBF7 0%, #F5EFEB 100%);
+            color: #2d2d2d;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+
+        header h1 {
+            font-size: 28px;
+            color: #8B6F47;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        header p {
+            font-size: 14px;
+            color: #a08070;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #D4A574;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #8B6F47;
+            transform: translateY(-2px);
+        }
+
+        button.active {
+            background: #8B6F47;
+        }
+
+        button.secondary {
+            background: #c4a784;
+        }
+
+        button.danger {
+            background: #e07856;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .form-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #8B6F47;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8d7cb;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #5a4d44;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e8d7cb;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #D4A574;
+            background: #fffaf7;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-btn {
+            background: #E8B4A0;
+            color: #2d2d2d;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-btn:hover {
+            background: #d9a68f;
+        }
+
+        .file-name {
+            font-size: 12px;
+            color: #8B6F47;
+            margin-top: 5px;
+        }
+
+        .photos-preview {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .photo-item {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            background: #f0e8e0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e8d7cb;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-label {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 4px;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e8d7cb;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #a08070;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            color: #8B6F47;
+            border-bottom-color: #D4A574;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loader.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #D4A574;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .message.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 5px solid #D4A574;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #8B6F47;
+            margin-bottom: 10px;
+        }
+
+        .card-subtitle {
+            font-size: 13px;
+            color: #a08070;
+            margin-bottom: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .button-group button {
+            flex: 1;
+        }
+
+        .setup-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+
+        .setup-warning strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .setup-warning code {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: block;
+            margin-top: 8px;
+            word-break: break-all;
+            font-family: monospace;
+        }
     </style>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen">
+<body>
+    <div class="container">
+        <header>
+            <h1>આંગણવાડી ડોક્યુમેન્ટ મેનેજર</h1>
+            <p>Gemini AI + Google Drive સાથે</p>
+        </header>
 
-    <header class="bg-blue-600 text-white p-4 text-center shadow-md sticky top-0 z-10">
-        <h1 class="text-xl font-bold">👶 આંગણવાડી ડિજિટલ રજીસ્ટર</h1>
-    </header>
-
-    <main class="p-4 max-w-md mx-auto pb-24">
-
-        <div id="homeScreen">
-            <div class="mb-4">
-                <input type="text" id="searchBar" placeholder="🔍 બાળકનું નામ લખીને શોધો..." 
-                    class="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-            </div>
-
-            <div id="recordList" class="space-y-3"></div>
+        <div class="setup-warning" id="setupWarning" style="display: none;">
+            <strong>⚙️ સેટআપ જરૂરી છે:</strong>
+            Google Apps Script URL આ ફોર્મે પેસ્ટ કરો:
+            <code id="setupCode"></code>
         </div>
 
-        <div id="addScreen" class="hidden bg-white p-4 rounded-lg shadow-md space-y-4">
-            <h2 class="text-lg font-bold border-b pb-2 text-gray-700">નવી એન્ટ્રી ઉમેરો</h2>
-            
-            <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 p-4 rounded-lg bg-gray-50">
-                <label class="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 inline-flex items-center space-x-2">
-                    📷 <span>ઝેરોક્ષનો ફોટો પાડો</span>
-                    <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
-                </label>
+        <div class="nav-buttons">
+            <button onclick="showPage('add')" class="active">+ AI વાપર કર</button>
+            <button onclick="showPage('manual')">✏️ મેન્યુઅલ એન્ટ્રી</button>
+            <button onclick="showPage('search')">🔍 શોધો</button>
+            <button onclick="showPage('settings')">⚙️ સેટિંગ્સ</button>
+        </div>
+
+        <!-- AI PAGE (Gemini OCR) -->
+        <div id="add-page" class="page active">
+            <div id="messageAI" class="message"></div>
+            <div id="loaderAI" class="loader">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px; color: #a08070;">ફોટો પ્રોસેસ કરી રહ્યા છીએ...</p>
             </div>
 
-            <div id="compressStatus" class="text-center text-xs text-green-600 font-semibold hidden">⚡ ફોટો ઓપ્ટિમાઇઝ થઈ રહ્યો છે...</div>
-            <img id="imagePreview" class="w-full h-48 object-contain rounded-md hidden border bg-gray-100">
-
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">બાળકનું નામ *</label>
-                    <input type="text" id="childName" placeholder="અહીં બાળકનું નામ લખો" class="w-full p-2 border rounded bg-gray-50 focus:bg-white focus:outline-blue-500">
+            <div class="form-section">
+                <div class="section-title">પગલું 1: આધાર ફોટો અપલોડ કરો</div>
+                <div class="form-group">
+                    <div class="file-upload-btn" onclick="document.getElementById('aadharPhotoAI').click()">
+                        📷 આધાર ઝેરોક્સ આપલોડ કરો
+                    </div>
+                    <input type="file" id="aadharPhotoAI" accept="image/*">
+                    <div class="file-name" id="aadharPhotoNameAI"></div>
+                    <div class="photos-preview" id="photosPreviewAI"></div>
                 </div>
             </div>
 
-            <div class="flex space-x-2 pt-2">
-                <button onclick="saveRecord()" class="flex-1 bg-green-600 text-white py-2 rounded-lg font-bold shadow hover:bg-green-700">💾 સેવ કરો</button>
-                <button onclick="switchScreen('home')" class="bg-gray-500 text-white px-4 py-2 rounded-lg">કેન્સલ</button>
+            <div class="form-section">
+                <div class="section-title">પગલું 2: જન્મ પ્રમાણપત્ર ફોટો અપલોડ કરો</div>
+                <div class="form-group">
+                    <div class="file-upload-btn" onclick="document.getElementById('birthCertPhotoAI').click()">
+                        📷 જન્મ પ્રમાણપત્ર ઝેરોક્સ આપલોડ કરો
+                    </div>
+                    <input type="file" id="birthCertPhotoAI" accept="image/*">
+                    <div class="file-name" id="birthCertPhotoNameAI"></div>
+                    <div class="photos-preview" id="photosPreviewBirthAI"></div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-title">પગલું 3: વાલી અને બાળક નું નામ</div>
+                <div class="form-group">
+                    <label>વાલીનું નામ</label>
+                    <input type="text" id="waliNameAI" placeholder="આપચે વાપરીને નીકળેલું નામ">
+                </div>
+
+                <div class="form-group">
+                    <label>બાળકનું નામ</label>
+                    <input type="text" id="childNameAI" placeholder="આપચે વાપરીને નીકળેલું નામ">
+                </div>
+
+                <div class="form-group">
+                    <label style="font-size: 12px; color: #999;">
+                        💡 ટીપ: Gemini AI સ્વતઃ ફોટોમાંથી નામ વાંચશે અને ફોર્મ ભરશે
+                    </label>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button onclick="processImageAI()">🤖 Gemini વાપર કરીને વાંચો</button>
+                <button onclick="clearFormAI()" class="secondary">Clear</button>
             </div>
         </div>
 
-        <div id="detailScreen" class="hidden bg-white p-4 rounded-lg shadow-md space-y-4">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h2 class="text-lg font-bold text-gray-700">દસ્તાવેજ નકલ</h2>
-                <button onclick="switchScreen('home')" class="text-red-500 font-bold text-xl">✕</button>
-            </div>
-            
-            <div class="bg-gray-50 p-3 rounded text-sm shadow-sm">
-                <p><strong>બાળકનું નામ:</strong> <span id="viewName" class="text-blue-600 font-bold"></span></p>
+        <!-- MANUAL PAGE -->
+        <div id="manual-page" class="page">
+            <div id="messageManual" class="message"></div>
+
+            <div class="form-section">
+                <div class="section-title">મેન્યુઅલ એન્ટ્રી</div>
+                <div class="form-group">
+                    <label>વાલીનું નામ *</label>
+                    <input type="text" id="waliNameManual" placeholder="વાલીનું નામ લખો">
+                </div>
+
+                <div class="form-group">
+                    <label>બાળકનું નામ *</label>
+                    <input type="text" id="childNameManual" placeholder="બાળકનું નામ લખો">
+                </div>
             </div>
 
-            <div>
-                <p class="text-xs font-bold text-gray-500 mb-1">📄 ઓરિજિનલ ઝેરોક્ષ ફોટો:</p>
-                <img id="viewImage" class="w-full border rounded-lg shadow-inner max-h-96 object-contain bg-black">
-                <button id="deleteBtn" class="w-full mt-4 bg-red-500 text-white py-2 rounded-lg font-bold text-sm shadow hover:bg-red-600">🗑️ આ રેકોર્ડ ડીલીટ કરો</button>
+            <div class="form-section">
+                <div class="section-title">ફોટો અપલોડ કરો</div>
+                <div class="form-group">
+                    <label>આધાર ઝેરોક્સ</label>
+                    <div class="file-upload-btn" onclick="document.getElementById('aadharPhotoManual').click()">
+                        📷 આધાર ફોટો આપલોડ કરો
+                    </div>
+                    <input type="file" id="aadharPhotoManual" accept="image/*">
+                    <div class="file-name" id="aadharPhotoNameManual"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>જન્મ પ્રમાણપત્ર ઝેરોક્સ</label>
+                    <div class="file-upload-btn" onclick="document.getElementById('birthCertPhotoManual').click()">
+                        📷 જન્મ પ્રમાણપત્ર ફોટો આપલોડ કરો
+                    </div>
+                    <input type="file" id="birthCertPhotoManual" accept="image/*">
+                    <div class="file-name" id="birthCertPhotoNameManual"></div>
+                </div>
+
+                <div class="photos-preview" id="photosPreviewManual"></div>
+            </div>
+
+            <div class="button-group">
+                <button onclick="saveEntryManual()">✓ સેવ કરો</button>
+                <button onclick="clearFormManual()" class="secondary">Clear</button>
             </div>
         </div>
 
-    </main>
+        <!-- SEARCH PAGE -->
+        <div id="search-page" class="page">
+            <div class="form-section">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    style="width: 100%; padding: 12px;"
+                    placeholder="વાલી અથવા બાળક નું નામ શોધો..."
+                    onkeyup="searchRecords()">
+            </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-2 shadow-lg max-w-md mx-auto z-10">
-        <button onclick="switchScreen('home')" class="flex flex-col items-center text-blue-600">
-            <span class="text-xl">🏠</span><span class="text-xs">હોમ / સર્ચ</span>
-        </button>
-        <button onclick="switchScreen('add')" class="flex flex-col items-center text-gray-600 hover:text-blue-600">
-            <span class="text-xl">➕</span><span class="text-xs">નવો ડેટા</span>
-        </button>
-    </nav>
+            <div id="searchResults"></div>
+        </div>
+
+        <!-- SETTINGS PAGE -->
+        <div id="settings-page" class="page">
+            <div class="form-section">
+                <div class="section-title">⚙️ સેટિંગ્સ</div>
+
+                <div class="form-group">
+                    <label>Google Apps Script Web App URL</label>
+                    <input 
+                        type="text" 
+                        id="appsScriptUrl" 
+                        placeholder="https://script.google.com/macros/d/..."
+                        style="font-size: 12px;">
+                    <div style="font-size: 12px; color: #a08070; margin-top: 8px;">
+                        આ URL Apps Script Deploy કર્યા પછી મળશે
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button onclick="saveSettings()">✓ સેટિંગ્સ સેવ કરો</button>
+                </div>
+            </div>
+
+            <div class="form-section" style="margin-top: 20px;">
+                <div class="section-title">📋 Setup Instructions</div>
+                <div style="font-size: 13px; line-height: 1.8; color: #555;">
+                    <p><strong>Step 1:</strong> Google Apps Script (script.google.com) ખોલો</p>
+                    <p><strong>Step 2:</strong> જે કોડ આપવામાં આવ્યો તે અહીં પેસ્ટ કરો</p>
+                    <p><strong>Step 3:</strong> Line 7 માં તમારો <strong>Gemini 2.5 Flash API Key</strong> ડાલો</p>
+                    <p><strong>Step 4:</strong> Folder ID આપણે પહેલાથી દીધેલું છે</p>
+                    <p><strong>Step 5:</strong> Deploy → New Deployment → Web App</p>
+                    <p><strong>Step 6:</strong> Execute as: તમારો Gmail Account</p>
+                    <p><strong>Step 7:</strong> Who has access: Anyone</p>
+                    <p><strong>Step 8:</strong> Deploy કર અને URL કોપી કર</p>
+                    <p><strong>Step 9:</strong> URL અહીં પેસ્ટ કર અને Save કર</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        let compressedImageBase64 = "";
+        // Configuration
+        let appsScriptUrl = localStorage.getItem('appsScriptUrl') || '';
 
-        window.onload = function() {
-            loadRecords();
-        };
-
-        function switchScreen(screen) {
-            document.getElementById('homeScreen').classList.add('hidden');
-            document.getElementById('addScreen').classList.add('hidden');
-            document.getElementById('detailScreen').classList.add('hidden');
-
-            if(screen === 'home') {
-                document.getElementById('homeScreen').classList.remove('hidden');
-                loadRecords(document.getElementById('searchBar').value);
-            } else if(screen === 'add') {
-                document.getElementById('addScreen').classList.remove('hidden');
-                resetForm();
-            } else if(screen === 'detail') {
-                document.getElementById('detailScreen').classList.remove('hidden');
-            }
+        // Initialize
+        if (!appsScriptUrl) {
+            document.getElementById('setupWarning').style.display = 'block';
+            document.getElementById('setupCode').textContent = 'Google Apps Script URL અહીં ડાલો અને Save કર';
         }
 
-        // હલકું ઇમેજ કમ્પ્રેસર (મોબાઇલ માટે બેસ્ટ)
-        document.getElementById('cameraInput').addEventListener('change', function(e) {
+        // Load saved URL
+        if (appsScriptUrl) {
+            document.getElementById('appsScriptUrl').value = appsScriptUrl;
+        }
+
+        // File upload handlers
+        document.getElementById('aadharPhotoAI').addEventListener('change', function(e) {
+            handleFileSelect(e, 'aadhar', 'aadharPhotoNameAI', 'photosPreviewAI');
+        });
+
+        document.getElementById('birthCertPhotoAI').addEventListener('change', function(e) {
+            handleFileSelect(e, 'birth', 'birthCertPhotoNameAI', 'photosPreviewBirthAI');
+        });
+
+        document.getElementById('aadharPhotoManual').addEventListener('change', function(e) {
+            handleFileSelect(e, 'aadhar', 'aadharPhotoNameManual', 'photosPreviewManual');
+        });
+
+        document.getElementById('birthCertPhotoManual').addEventListener('change', function(e) {
+            handleFileSelect(e, 'birth', 'birthCertPhotoNameManual', 'photosPreviewManual');
+        });
+
+        function handleFileSelect(e, type, nameElementId, previewElementId) {
             const file = e.target.files[0];
-            if (!file) return;
-
-            document.getElementById('compressStatus').classList.remove('hidden');
-
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    // ફાઇલ સાઇઝ નાની રાખવા માટે વિડ્થ ૪૫૦px કરી દીધી, ઝેરોક્ષ આસાનીથી વંચાશે
-                    const max_width = 450; 
-                    const scale = max_width / img.width;
-                    canvas.width = max_width;
-                    canvas.height = img.height * scale;
-
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    
-                    // ક્વોલિટી 0.45 જેથી સાઇઝ ખૂબ જ ઓછી (KB માં) થઈ જાય
-                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.45);
-
-                    const imgPreview = document.getElementById('imagePreview');
-                    imgPreview.src = compressedImageBase64;
-                    imgPreview.classList.remove('hidden');
-                    document.getElementById('compressStatus').classList.add('hidden');
+            if (file) {
+                document.getElementById(nameElementId).textContent = '✓ ' + file.name;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    displayPhotoPreview(event.target.result, type, previewElementId);
                 };
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // સેવ કરવાનું લોજિક
-        function saveRecord() {
-            const name = document.getElementById('childName').value.trim();
-
-            if(!name) {
-                alert("કૃપા કરીને બાળકનું નામ લખો!");
-                return;
-            }
-            if(!compressedImageBase64) {
-                alert("કૃપા કરીને ઝેરોક્ષનો ફોટો પાડો!");
-                return;
-            }
-
-            let records = [];
-            try {
-                records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
-            } catch(e) {
-                records = [];
-            }
-            
-            const newRecord = {
-                id: Date.now(),
-                name: name,
-                image: compressedImageBase64,
-                dateAdded: new Date().toLocaleDateString()
-            };
-
-            records.push(newRecord);
-            
-            try {
-                localStorage.setItem("anganwadi_records", JSON.stringify(records));
-                alert("✅ સફળતાપૂર્વક સેવ થઈ ગયું!");
-                document.getElementById('searchBar').value = "";
-                switchScreen('home');
-            } catch(e) {
-                console.error(e);
-                alert("ફોટો સેવ ન થઈ શક્યો. કૃપા કરીને થોડો દૂરથી ફોટો પાડો જેથી ફાઇલ નાની બને.");
+                reader.readAsDataURL(file);
             }
         }
 
-        // ડેટા લોડ અને લાઈવ સર્ચ
-        function loadRecords(filter = "") {
-            const recordList = document.getElementById('recordList');
-            if(!recordList) return;
-            recordList.innerHTML = "";
-
-            let records = [];
-            try {
-                records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
-            } catch(e) {
-                records = [];
-            }
+        function displayPhotoPreview(dataUrl, type, previewElementId) {
+            let container = document.getElementById(previewElementId);
+            let existing = container.querySelector(`[data-type="${type}"]`);
             
-            let hasData = false;
+            if (existing) {
+                existing.remove();
+            }
 
-            records.forEach(record => {
-                if(filter === "" || record.name.toLowerCase().includes(filter.toLowerCase())) {
-                    hasData = true;
-                    const card = document.createElement('div');
-                    card.className = "bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500 flex justify-between items-center cursor-pointer hover:bg-blue-50";
-                    card.onclick = () => showDetail(record);
-                    
-                    card.innerHTML = `
-                        <div>
-                            <h3 class="font-bold text-gray-800">${record.name}</h3>
-                            <p class="text-xs text-gray-500">તારીખ: ${record.dateAdded}</p>
-                        </div>
-                        <span class="text-blue-500 font-semibold text-sm">👁️ જુઓ</span>
-                    `;
-                    recordList.appendChild(card);
+            const photoDiv = document.createElement('div');
+            photoDiv.className = 'photo-item';
+            photoDiv.dataset.type = type;
+            photoDiv.innerHTML = `
+                <img src="${dataUrl}">
+                <div class="photo-label">${type === 'aadhar' ? 'આધાર' : 'જ.પ્રમાણપત્ર'}</div>
+            `;
+            container.appendChild(photoDiv);
+            
+            // Store in window
+            window[type + 'PhotoData'] = dataUrl;
+        }
+
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageName + '-page').classList.add('active');
+            
+            document.querySelectorAll('.nav-buttons button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // ========================================
+        // AI MODE: Gemini OCR
+        // ========================================
+        async function processImageAI() {
+            if (!appsScriptUrl) {
+                showMessage('messageAI', 'error', 'કૃપા કરીને પહેલા Settings માં Apps Script URL ડાલો');
+                return;
+            }
+
+            const waliName = document.getElementById('waliNameAI').value.trim();
+            const childName = document.getElementById('childNameAI').value.trim();
+
+            if (!waliName || !childName) {
+                showMessage('messageAI', 'error', 'કૃપા કરીને વાલી અને બાળક નું નામ ભરો');
+                return;
+            }
+
+            if (!window.aadharPhotoData || !window.birthPhotoData) {
+                showMessage('messageAI', 'error', 'કૃપા કરીને બંને ફોટો અપલોડ કરો');
+                return;
+            }
+
+            showLoader('loaderAI', true);
+
+            try {
+                const payload = {
+                    action: "saveRecord",
+                    waliName: waliName,
+                    childName: childName,
+                    aadharPhoto: window.aadharPhotoData,
+                    birthCertPhoto: window.birthPhotoData
+                };
+
+                const response = await fetch(appsScriptUrl, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                showLoader('loaderAI', false);
+
+                if (result.success) {
+                    showMessage('messageAI', 'success', '✓ ' + result.message);
+                    clearFormAI();
+                } else {
+                    showMessage('messageAI', 'error', 'ભૂલ: ' + result.error);
                 }
-            });
-
-            if (!hasData) {
-                recordList.innerHTML = `<p class="text-center text-gray-500 mt-4">કોઈ રેકોર્ડ મળ્યો નથી.</p>`;
+            } catch (error) {
+                showLoader('loaderAI', false);
+                showMessage('messageAI', 'error', 'ભૂલ: ' + error.toString());
             }
         }
 
-        document.getElementById('searchBar').addEventListener('input', function(e) {
-            loadRecords(e.target.value);
-        });
-
-        function showDetail(record) {
-            document.getElementById('viewName').innerText = record.name;
-            document.getElementById('viewImage').src = record.image;
-            document.getElementById('deleteBtn').onclick = () => deleteRecord(record.id);
-            switchScreen('detail');
+        function clearFormAI() {
+            document.getElementById('waliNameAI').value = '';
+            document.getElementById('childNameAI').value = '';
+            document.getElementById('aadharPhotoNameAI').textContent = '';
+            document.getElementById('birthCertPhotoNameAI').textContent = '';
+            document.getElementById('photosPreviewAI').innerHTML = '';
+            document.getElementById('photosPreviewBirthAI').innerHTML = '';
+            window.aadharPhotoData = null;
+            window.birthPhotoData = null;
         }
 
-        function deleteRecord(id) {
-            if(confirm("શું તમે આ રેકોર્ડ ખરેખર ડીલીટ કરવા માંગો છો?")) {
-                let records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
-                records = records.filter(r => r.id !== id);
-                localStorage.setItem("anganwadi_records", JSON.stringify(records));
-                switchScreen('home');
+        // ========================================
+        // MANUAL MODE
+        // ========================================
+        async function saveEntryManual() {
+            if (!appsScriptUrl) {
+                showMessage('messageManual', 'error', 'કૃપા કરીને પહેલા Settings માં Apps Script URL ડાલો');
+                return;
+            }
+
+            const waliName = document.getElementById('waliNameManual').value.trim();
+            const childName = document.getElementById('childNameManual').value.trim();
+
+            if (!waliName || !childName) {
+                showMessage('messageManual', 'error', 'કૃપા કરીને વાલી અને બાળક નું નામ ભરો');
+                return;
+            }
+
+            try {
+                const payload = {
+                    action: "saveRecord",
+                    waliName: waliName,
+                    childName: childName,
+                    aadharPhoto: window.aadharPhotoData || null,
+                    birthCertPhoto: window.birthPhotoData || null
+                };
+
+                const response = await fetch(appsScriptUrl, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('messageManual', 'success', '✓ ' + result.message);
+                    clearFormManual();
+                } else {
+                    showMessage('messageManual', 'error', 'ભૂલ: ' + result.error);
+                }
+            } catch (error) {
+                showMessage('messageManual', 'error', 'ભૂલ: ' + error.toString());
             }
         }
 
-        function resetForm() {
-            document.getElementById('childName').value = "";
-            compressedImageBase64 = "";
-            document.getElementById('imagePreview').classList.add('hidden');
-            document.getElementById('compressStatus').classList.add('hidden');
+        function clearFormManual() {
+            document.getElementById('waliNameManual').value = '';
+            document.getElementById('childNameManual').value = '';
+            document.getElementById('aadharPhotoNameManual').textContent = '';
+            document.getElementById('birthCertPhotoNameManual').textContent = '';
+            document.getElementById('photosPreviewManual').innerHTML = '';
+            window.aadharPhotoData = null;
+            window.birthPhotoData = null;
+        }
+
+        // ========================================
+        // SEARCH
+        // ========================================
+        async function searchRecords() {
+            if (!appsScriptUrl) {
+                document.getElementById('searchResults').innerHTML = '<div style="padding: 20px; text-align: center; color: #a08070;">Settings માં URL ડાલો</div>';
+                return;
+            }
+
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            try {
+                const response = await fetch(appsScriptUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "getAllRecords" })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.records) {
+                    let records = result.records;
+                    
+                    if (query) {
+                        records = records.filter(r => 
+                            r.waliName.toLowerCase().includes(query) ||
+                            r.childName.toLowerCase().includes(query)
+                        );
+                    }
+
+                    displaySearchResults(records);
+                } else {
+                    document.getElementById('searchResults').innerHTML = '<div style="padding: 20px; text-align: center; color: #a08070;">ડેટા લોડ કરતા ભૂલ</div>';
+                }
+            } catch (error) {
+                document.getElementById('searchResults').innerHTML = '<div style="padding: 20px; text-align: center; color: #a08070;">ભૂલ: ' + error.toString() + '</div>';
+            }
+        }
+
+        function displaySearchResults(records) {
+            const container = document.getElementById('searchResults');
+
+            if (records.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #a08070;">કોઈ પરિણામ મળ્યાં નહીં</div>';
+                return;
+            }
+
+            container.innerHTML = records.map(record => `
+                <div class="card">
+                    <div class="card-title">${record.waliName}</div>
+                    <div class="card-subtitle">બાળક: ${record.childName}</div>
+                    <div style="font-size: 12px; color: #a08070;">
+                        ${record.aadharNumber ? 'આધાર: ' + record.aadharNumber + '<br>' : ''}
+                        ${record.dateOfBirth ? 'જ.તા: ' + record.dateOfBirth : ''}
+                    </div>
+                    ${record.aadharImageUrl || record.birthImageUrl ? `
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            ${record.aadharImageUrl ? `<a href="${record.aadharImageUrl}" target="_blank" style="color: #D4A574; text-decoration: none;">👁️ આધાર ફોટો</a>` : ''}
+                            ${record.birthImageUrl ? `<a href="${record.birthImageUrl}" target="_blank" style="color: #D4A574; text-decoration: none;">👁️ જ.પ્રમાણપત્ર</a>` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // ========================================
+        // SETTINGS
+        // ========================================
+        function saveSettings() {
+            const url = document.getElementById('appsScriptUrl').value.trim();
+            
+            if (!url) {
+                showMessage('messageSettings', 'error', 'કૃપા કરીને URL ડાલો');
+                return;
+            }
+
+            localStorage.setItem('appsScriptUrl', url);
+            appsScriptUrl = url;
+            document.getElementById('setupWarning').style.display = 'none';
+            
+            showMessage('settings', 'success', '✓ સેટિંગ્સ સેવ થઈ');
+            setTimeout(() => {
+                document.querySelectorAll('.message').forEach(m => m.classList.remove('show'));
+            }, 3000);
+        }
+
+        // ========================================
+        // UTILITIES
+        // ========================================
+        function showMessage(elementId, type, text) {
+            const element = document.getElementById(elementId);
+            element.className = 'message ' + type + ' show';
+            element.textContent = text;
+
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, 5000);
+        }
+
+        function showLoader(elementId, show) {
+            const element = document.getElementById(elementId);
+            if (show) {
+                element.classList.add('show');
+            } else {
+                element.classList.remove('show');
+            }
         }
     </script>
 </body>
