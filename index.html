@@ -3,815 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>આંગણવાડી ડોક્યુમેન્ટ મેનેજર</title>
+    <title>આંગણવાડી ડિજિટલ રજીસ્ટર</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #FFFBF7 0%, #F5EFEB 100%);
-            color: #2d2d2d;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px 0;
-        }
-
-        header h1 {
-            font-size: 28px;
-            color: #8B6F47;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        header p {
-            font-size: 14px;
-            color: #a08070;
-        }
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        /* Navigation */
-        .nav-buttons {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        button {
-            background: #D4A574;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            background: #8B6F47;
-            transform: translateY(-2px);
-        }
-
-        button.active {
-            background: #8B6F47;
-        }
-
-        button.secondary {
-            background: #c4a784;
-        }
-
-        button.danger {
-            background: #e07856;
-        }
-
-        button.danger:hover {
-            background: #d46844;
-        }
-
-        /* Form Styles */
-        .form-group {
-            margin-bottom: 18px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            color: #5a4d44;
-            font-size: 14px;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 2px solid #e8d7cb;
-            border-radius: 6px;
-            font-size: 14px;
-            font-family: inherit;
-            transition: border-color 0.3s ease;
-        }
-
-        input[type="text"]:focus,
-        input[type="date"]:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #D4A574;
-            background: #fffaf7;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .file-upload-btn {
-            background: #E8B4A0;
-            color: #2d2d2d;
-            padding: 10px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: inline-block;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .file-upload-btn:hover {
-            background: #d9a68f;
-        }
-
-        .file-name {
-            font-size: 12px;
-            color: #8B6F47;
-            margin-top: 5px;
-        }
-
-        .photos-preview {
-            display: flex;
-            gap: 15px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
-        .photo-item {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            background: #f0e8e0;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 2px solid #e8d7cb;
-        }
-
-        .photo-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .photo-label {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background: rgba(0,0,0,0.6);
-            color: white;
-            padding: 4px;
-            font-size: 11px;
-            text-align: center;
-        }
-
-        /* Card Styles */
-        .card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border-left: 5px solid #D4A574;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 15px;
-        }
-
-        .card-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #8B6F47;
-        }
-
-        .card-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .card-actions button {
-            padding: 6px 12px;
-            font-size: 12px;
-        }
-
-        .card-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .info-item {
-            background: #f9f6f2;
-            padding: 12px;
-            border-radius: 6px;
-        }
-
-        .info-label {
-            font-size: 12px;
-            color: #a08070;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .info-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2d2d2d;
-        }
-
-        .photos-section {
-            background: #f9f6f2;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 15px;
-        }
-
-        .photos-section h4 {
-            font-size: 13px;
-            color: #8B6F47;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .photos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 10px;
-        }
-
-        .photo-thumb {
-            width: 100%;
-            aspect-ratio: 1;
-            border-radius: 6px;
-            overflow: hidden;
-            cursor: pointer;
-            border: 2px solid #e8d7cb;
-            transition: transform 0.3s ease;
-        }
-
-        .photo-thumb:hover {
-            transform: scale(1.05);
-        }
-
-        .photo-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Search */
-        .search-box {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e8d7cb;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #D4A574;
-            background: #fffaf7;
-        }
-
-        .results-info {
-            font-size: 13px;
-            color: #a08070;
-            margin-top: 15px;
-            text-align: center;
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 40px 20px;
-            color: #a08070;
-        }
-
-        .no-results p {
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 10px;
-            max-width: 90%;
-            max-height: 90vh;
-            overflow: auto;
-            padding: 20px;
-        }
-
-        .modal-close {
-            float: right;
-            font-size: 24px;
-            cursor: pointer;
-            color: #a08070;
-        }
-
-        .modal-close:hover {
-            color: #8B6F47;
-        }
-
-        .modal img {
-            width: 100%;
-            max-width: 500px;
-            border-radius: 8px;
-        }
-
-        /* Stats */
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .stat-box {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .stat-number {
-            font-size: 24px;
-            font-weight: 700;
-            color: #D4A574;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #a08070;
-            margin-top: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Responsive */
-        @media (max-width: 600px) {
-            header h1 {
-                font-size: 22px;
-            }
-
-            .card-info {
-                grid-template-columns: 1fr;
-            }
-
-            .nav-buttons {
-                flex-direction: column;
-            }
-
-            button {
-                width: 100%;
-            }
-
-            .photos-preview {
-                justify-content: space-around;
-            }
-        }
-
-        .success-message {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 12px 15px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            display: none;
-        }
-
-        .success-message.show {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-section {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .section-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #8B6F47;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e8d7cb;
-        }
+        .hidden { display: none; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>આંગણવાડી ડોક્યુમેન્ટ મેનેજર</h1>
-            <p>વાલી અને બાળકોના ડોક્યુમેન્ટ સંગ્રહ અને શોધ</p>
-        </header>
+<body class="bg-gray-100 font-sans min-h-screen">
 
-        <div class="nav-buttons">
-            <button onclick="showPage('add')" class="active">+ ઈન્ટ્રી ઉમેરો</button>
-            <button onclick="showPage('search')">🔍 ઈન્ટ્રી શોધો</button>
+    <header class="bg-blue-600 text-white p-4 text-center shadow-md sticky top-0 z-10">
+        <h1 class="text-xl font-bold">👶 આંગણવાડી ડિજિટલ રજીસ્ટર</h1>
+    </header>
+
+    <main class="p-4 max-w-md mx-auto pb-24">
+
+        <div id="homeScreen">
+            <div class="mb-4">
+                <input type="text" id="searchBar" placeholder="🔍 બાળકનું નામ લખીને શોધો..." 
+                    class="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            </div>
+
+            <div id="recordList" class="space-y-3"></div>
         </div>
 
-        <!-- ADD PAGE -->
-        <div id="add-page" class="page active">
-            <div class="success-message" id="successMessage">✓ ઈન્ટ્રી સફળતાથી સેવ થઈ</div>
+        <div id="addScreen" class="hidden bg-white p-4 rounded-lg shadow-md space-y-4">
+            <h2 class="text-lg font-bold border-b pb-2 text-gray-700">નવી એન્ટ્રી ઉમેરો</h2>
+            
+            <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 p-4 rounded-lg bg-gray-50">
+                <label class="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 inline-flex items-center space-x-2">
+                    📷 <span>ઝેરોક્ષનો ફોટો પાડો</span>
+                    <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
+                </label>
+            </div>
 
-            <div class="form-section">
-                <div class="section-title">વાલીની માહિતી</div>
-                
-                <div class="form-group">
-                    <label>વાલીનું નામ *</label>
-                    <input type="text" id="waliName" placeholder="આમેલી શર્મા">
-                </div>
+            <div id="compressStatus" class="text-center text-xs text-green-600 font-semibold hidden">⚡ ફોટો ઓપ્ટિમાઇઝ થઈ રહ્યો છે...</div>
+            <img id="imagePreview" class="w-full h-48 object-contain rounded-md hidden border bg-gray-100">
 
-                <div class="form-group">
-                    <label>આધાર નંબર *</label>
-                    <input type="text" id="aadharNumber" placeholder="1234-5678-9012">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">બાળકનું નામ *</label>
+                    <input type="text" id="childName" placeholder="અહીં બાળકનું નામ લખો" class="w-full p-2 border rounded bg-gray-50 focus:bg-white focus:outline-blue-500">
                 </div>
             </div>
 
-            <div class="form-section" style="margin-top: 20px;">
-                <div class="section-title">બાળકની માહિતી</div>
-
-                <div class="form-group">
-                    <label>બાળકનું નામ *</label>
-                    <input type="text" id="childName" placeholder="રાજુ શર્મા">
-                </div>
-
-                <div class="form-group">
-                    <label>જન્મ તારીખ *</label>
-                    <input type="date" id="birthDate">
-                </div>
-            </div>
-
-            <div class="form-section" style="margin-top: 20px;">
-                <div class="section-title">ડોક્યુમેન્ટ્સ</div>
-
-                <div class="form-group">
-                    <label>આધાર ઝેરોક્સ</label>
-                    <div class="file-upload-btn" onclick="document.getElementById('aadharPhoto').click()">
-                        📷 આધાર ફોટો અપલોડ કરો
-                    </div>
-                    <input type="file" id="aadharPhoto" accept="image/*">
-                    <div class="file-name" id="aadharPhotoName"></div>
-                </div>
-
-                <div class="form-group">
-                    <label>જન્મ પ્રમાણપત્ર ઝેરોક્સ</label>
-                    <div class="file-upload-btn" onclick="document.getElementById('birthCertPhoto').click()">
-                        📷 જન્મ પ્રમાણપત્ર ફોટો અપલોડ કરો
-                    </div>
-                    <input type="file" id="birthCertPhoto" accept="image/*">
-                    <div class="file-name" id="birthCertPhotoName"></div>
-                </div>
-
-                <div class="photos-preview" id="photosPreview"></div>
-            </div>
-
-            <div style="margin-top: 25px; display: flex; gap: 10px;">
-                <button onclick="saveEntry()" style="flex: 1;">✓ સેવ કરો</button>
-                <button onclick="clearForm()" class="secondary" style="flex: 1;">Clear</button>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="saveRecord()" class="flex-1 bg-green-600 text-white py-2 rounded-lg font-bold shadow hover:bg-green-700">💾 સેવ કરો</button>
+                <button onclick="switchScreen('home')" class="bg-gray-500 text-white px-4 py-2 rounded-lg">કેન્સલ</button>
             </div>
         </div>
 
-        <!-- SEARCH PAGE -->
-        <div id="search-page" class="page">
-            <div class="search-box">
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    class="search-input" 
-                    placeholder="વાલીનું નામ, આધાર નંબર, બાળક નામ લખો..."
-                    onkeyup="searchRecords()">
-                <div class="results-info" id="resultsInfo"></div>
+        <div id="detailScreen" class="hidden bg-white p-4 rounded-lg shadow-md space-y-4">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h2 class="text-lg font-bold text-gray-700">દસ્તાવેજ નકલ</h2>
+                <button onclick="switchScreen('home')" class="text-red-500 font-bold text-xl">✕</button>
+            </div>
+            
+            <div class="bg-gray-50 p-3 rounded text-sm shadow-sm">
+                <p><strong>બાળકનું નામ:</strong> <span id="viewName" class="text-blue-600 font-bold"></span></p>
             </div>
 
-            <div class="stats">
-                <div class="stat-box">
-                    <div class="stat-number" id="totalRecords">0</div>
-                    <div class="stat-label">કુલ ઈન્ટ્રી</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-number" id="totalWalis">0</div>
-                    <div class="stat-label">વાલીઓ</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-number" id="totalChildren">0</div>
-                    <div class="stat-label">બાળકો</div>
-                </div>
+            <div>
+                <p class="text-xs font-bold text-gray-500 mb-1">📄 ઓરિજિનલ ઝેરોક્ષ ફોટો:</p>
+                <img id="viewImage" class="w-full border rounded-lg shadow-inner max-h-96 object-contain bg-black">
+                <button id="deleteBtn" class="w-full mt-4 bg-red-500 text-white py-2 rounded-lg font-bold text-sm shadow hover:bg-red-600">🗑️ આ રેકોર્ડ ડીલીટ કરો</button>
             </div>
-
-            <div id="resultsContainer"></div>
         </div>
-    </div>
 
-    <!-- Photo Modal -->
-    <div id="photoModal" class="modal" onclick="closePhotoModal(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <span class="modal-close" onclick="closePhotoModal()">×</span>
-            <img id="modalPhoto" src="" alt="">
-        </div>
-    </div>
+    </main>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-2 shadow-lg max-w-md mx-auto z-10">
+        <button onclick="switchScreen('home')" class="flex flex-col items-center text-blue-600">
+            <span class="text-xl">🏠</span><span class="text-xs">હોમ / સર્ચ</span>
+        </button>
+        <button onclick="switchScreen('add')" class="flex flex-col items-center text-gray-600 hover:text-blue-600">
+            <span class="text-xl">➕</span><span class="text-xs">નવો ડેટા</span>
+        </button>
+    </nav>
 
     <script>
-        // Initialize
-        let allRecords = [];
-        loadRecords();
-        updateStats();
+        let compressedImageBase64 = "";
 
-        function showPage(pageName) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageName + '-page').classList.add('active');
-            
-            document.querySelectorAll('.nav-buttons button').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+        window.onload = function() {
+            loadRecords();
+        };
 
-            if (pageName === 'search') {
-                updateStats();
-                searchRecords();
+        function switchScreen(screen) {
+            document.getElementById('homeScreen').classList.add('hidden');
+            document.getElementById('addScreen').classList.add('hidden');
+            document.getElementById('detailScreen').classList.add('hidden');
+
+            if(screen === 'home') {
+                document.getElementById('homeScreen').classList.remove('hidden');
+                loadRecords(document.getElementById('searchBar').value);
+            } else if(screen === 'add') {
+                document.getElementById('addScreen').classList.remove('hidden');
+                resetForm();
+            } else if(screen === 'detail') {
+                document.getElementById('detailScreen').classList.remove('hidden');
             }
         }
 
-        // File Upload Handlers
-        document.getElementById('aadharPhoto').addEventListener('change', function(e) {
-            handleFileSelect(e, 'aadhar', 'aadharPhotoName');
-        });
-
-        document.getElementById('birthCertPhoto').addEventListener('change', function(e) {
-            handleFileSelect(e, 'birth', 'birthCertPhotoName');
-        });
-
-        function handleFileSelect(e, type, nameElementId) {
+        // હલકું ઇમેજ કમ્પ્રેસર (મોબાઇલ માટે બેસ્ટ)
+        document.getElementById('cameraInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
-            if (file) {
-                document.getElementById(nameElementId).textContent = '✓ ' + file.name;
-                
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    displayPhotoPreview(event.target.result, type);
+            if (!file) return;
+
+            document.getElementById('compressStatus').classList.remove('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // ફાઇલ સાઇઝ નાની રાખવા માટે વિડ્થ ૪૫૦px કરી દીધી, ઝેરોક્ષ આસાનીથી વંચાશે
+                    const max_width = 450; 
+                    const scale = max_width / img.width;
+                    canvas.width = max_width;
+                    canvas.height = img.height * scale;
+
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    // ક્વોલિટી 0.45 જેથી સાઇઝ ખૂબ જ ઓછી (KB માં) થઈ જાય
+                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.45);
+
+                    const imgPreview = document.getElementById('imagePreview');
+                    imgPreview.src = compressedImageBase64;
+                    imgPreview.classList.remove('hidden');
+                    document.getElementById('compressStatus').classList.add('hidden');
                 };
-                reader.readAsDataURL(file);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // સેવ કરવાનું લોજિક
+        function saveRecord() {
+            const name = document.getElementById('childName').value.trim();
+
+            if(!name) {
+                alert("કૃપા કરીને બાળકનું નામ લખો!");
+                return;
             }
-        }
-
-        function displayPhotoPreview(dataUrl, type) {
-            let container = document.getElementById('photosPreview');
-            let existing = container.querySelector(`[data-type="${type}"]`);
-            
-            if (existing) {
-                existing.remove();
-            }
-
-            const photoDiv = document.createElement('div');
-            photoDiv.className = 'photo-item';
-            photoDiv.dataset.type = type;
-            photoDiv.innerHTML = `
-                <img src="${dataUrl}">
-                <div class="photo-label">${type === 'aadhar' ? 'આધાર' : 'જ.પ્રમાણપત્ર'}</div>
-            `;
-            container.appendChild(photoDiv);
-            
-            // Store in window for saving
-            window[type + 'PhotoData'] = dataUrl;
-        }
-
-        function saveEntry() {
-            const waliName = document.getElementById('waliName').value.trim();
-            const aadharNumber = document.getElementById('aadharNumber').value.trim();
-            const childName = document.getElementById('childName').value.trim();
-            const birthDate = document.getElementById('birthDate').value;
-
-            if (!waliName || !aadharNumber || !childName || !birthDate) {
-                alert('કૃપા કરીને તમામ આવશ્યક ક્ષેત્રો ભરો');
+            if(!compressedImageBase64) {
+                alert("કૃપા કરીને ઝેરોક્ષનો ફોટો પાડો!");
                 return;
             }
 
-            const record = {
-                id: Date.now().toString(),
-                waliName: waliName,
-                aadharNumber: aadharNumber,
-                childName: childName,
-                birthDate: birthDate,
-                aadharPhoto: window.aadharPhotoData || null,
-                birthCertPhoto: window.birthPhotoData || null,
-                createdAt: new Date().toISOString()
+            let records = [];
+            try {
+                records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
+            } catch(e) {
+                records = [];
+            }
+            
+            const newRecord = {
+                id: Date.now(),
+                name: name,
+                image: compressedImageBase64,
+                dateAdded: new Date().toLocaleDateString()
             };
 
-            allRecords.push(record);
-            saveRecords();
+            records.push(newRecord);
             
-            showSuccessMessage();
-            clearForm();
-            updateStats();
+            try {
+                localStorage.setItem("anganwadi_records", JSON.stringify(records));
+                alert("✅ સફળતાપૂર્વક સેવ થઈ ગયું!");
+                document.getElementById('searchBar').value = "";
+                switchScreen('home');
+            } catch(e) {
+                console.error(e);
+                alert("ફોટો સેવ ન થઈ શક્યો. કૃપા કરીને થોડો દૂરથી ફોટો પાડો જેથી ફાઇલ નાની બને.");
+            }
         }
 
-        function clearForm() {
-            document.getElementById('waliName').value = '';
-            document.getElementById('aadharNumber').value = '';
-            document.getElementById('childName').value = '';
-            document.getElementById('birthDate').value = '';
-            document.getElementById('aadharPhotoName').textContent = '';
-            document.getElementById('birthCertPhotoName').textContent = '';
-            document.getElementById('photosPreview').innerHTML = '';
-            window.aadharPhotoData = null;
-            window.birthPhotoData = null;
-        }
+        // ડેટા લોડ અને લાઈવ સર્ચ
+        function loadRecords(filter = "") {
+            const recordList = document.getElementById('recordList');
+            if(!recordList) return;
+            recordList.innerHTML = "";
 
-        function showSuccessMessage() {
-            const msg = document.getElementById('successMessage');
-            msg.classList.add('show');
-            setTimeout(() => msg.classList.remove('show'), 3000);
-        }
-
-        function searchRecords() {
-            const query = document.getElementById('searchInput').value.toLowerCase().trim();
-            const container = document.getElementById('resultsContainer');
+            let records = [];
+            try {
+                records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
+            } catch(e) {
+                records = [];
+            }
             
-            let results = allRecords;
-            if (query) {
-                results = allRecords.filter(record => 
-                    record.waliName.toLowerCase().includes(query) ||
-                    record.aadharNumber.includes(query) ||
-                    record.childName.toLowerCase().includes(query)
-                );
-            }
+            let hasData = false;
 
-            displayResults(results, query);
+            records.forEach(record => {
+                if(filter === "" || record.name.toLowerCase().includes(filter.toLowerCase())) {
+                    hasData = true;
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500 flex justify-between items-center cursor-pointer hover:bg-blue-50";
+                    card.onclick = () => showDetail(record);
+                    
+                    card.innerHTML = `
+                        <div>
+                            <h3 class="font-bold text-gray-800">${record.name}</h3>
+                            <p class="text-xs text-gray-500">તારીખ: ${record.dateAdded}</p>
+                        </div>
+                        <span class="text-blue-500 font-semibold text-sm">👁️ જુઓ</span>
+                    `;
+                    recordList.appendChild(card);
+                }
+            });
+
+            if (!hasData) {
+                recordList.innerHTML = `<p class="text-center text-gray-500 mt-4">કોઈ રેકોર્ડ મળ્યો નથી.</p>`;
+            }
         }
 
-        function displayResults(records, query) {
-            const container = document.getElementById('resultsContainer');
-            const info = document.getElementById('resultsInfo');
-            
-            if (query) {
-                info.textContent = records.length + ' પરિણામ મળ્યાં';
-            } else {
-                info.textContent = 'કુલ ' + records.length + ' ઈન્ટ્રીઓ';
-            }
+        document.getElementById('searchBar').addEventListener('input', function(e) {
+            loadRecords(e.target.value);
+        });
 
-            if (records.length === 0) {
-                container.innerHTML = '<div class="no-results"><p>કોઈ પરિણામ મળ્યાં નહીં</p></div>';
-                return;
-            }
-
-            container.innerHTML = records.map(record => `
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">${record.waliName}</div>
-                        <div class="card-actions">
-                            <button onclick="editRecord('${record.id}')" class="secondary">✏️ Edit</button>
-                            <button onclick="deleteRecord('${record.id}')" class="danger">🗑️ Delete</button>
-                        </div>
-                    </div>
-
-                    <div class="card-info">
-                        <div class="info-item">
-                            <div class="info-label">આધાર નંબર</div>
-                            <div class="info-value">${record.aadharNumber}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">બાળક</div>
-                            <div class="info-value">${record.childName}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">જન્મ તારીખ</div>
-                            <div class="info-value">${formatDate(record.birthDate)}</div>
-                        </div>
-                    </div>
-
-                    ${record.aadharPhoto || record.birthCertPhoto ? `
-                        <div class="photos-section">
-                            <h4>ડોક્યુમેન્ટ્સ</h4>
-                            <div class="photos-grid">
-                                ${record.aadharPhoto ? `
-                                    <div class="photo-thumb" onclick="openPhotoModal('${record.aadharPhoto}')">
-                                        <img src="${record.aadharPhoto}">
-                                    </div>
-                                ` : ''}
-                                ${record.birthCertPhoto ? `
-                                    <div class="photo-thumb" onclick="openPhotoModal('${record.birthCertPhoto}')">
-                                        <img src="${record.birthCertPhoto}">
-                                    </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('');
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('gu-IN');
+        function showDetail(record) {
+            document.getElementById('viewName').innerText = record.name;
+            document.getElementById('viewImage').src = record.image;
+            document.getElementById('deleteBtn').onclick = () => deleteRecord(record.id);
+            switchScreen('detail');
         }
 
         function deleteRecord(id) {
-            if (confirm('શું આપ આ ઈન્ટ્રી કાઢી નાખવાનો પોતાશોકો છો?')) {
-                allRecords = allRecords.filter(r => r.id !== id);
-                saveRecords();
-                searchRecords();
-                updateStats();
+            if(confirm("શું તમે આ રેકોર્ડ ખરેખર ડીલીટ કરવા માંગો છો?")) {
+                let records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
+                records = records.filter(r => r.id !== id);
+                localStorage.setItem("anganwadi_records", JSON.stringify(records));
+                switchScreen('home');
             }
         }
 
-        function editRecord(id) {
-            alert('Edit બાદમાં આવશે');
-        }
-
-        function openPhotoModal(photoData) {
-            document.getElementById('modalPhoto').src = photoData;
-            document.getElementById('photoModal').classList.add('active');
-        }
-
-        function closePhotoModal(event) {
-            if (event && event.target.id !== 'photoModal') return;
-            document.getElementById('photoModal').classList.remove('active');
-        }
-
-        function updateStats() {
-            document.getElementById('totalRecords').textContent = allRecords.length;
-            
-            const uniqueWalis = new Set(allRecords.map(r => r.aadharNumber)).size;
-            document.getElementById('totalWalis').textContent = uniqueWalis;
-            
-            document.getElementById('totalChildren').textContent = allRecords.length;
-        }
-
-        // Storage Functions
-        function saveRecords() {
-            localStorage.setItem('anganwadiRecords', JSON.stringify(allRecords));
-        }
-
-        function loadRecords() {
-            const data = localStorage.getItem('anganwadiRecords');
-            allRecords = data ? JSON.parse(data) : [];
+        function resetForm() {
+            document.getElementById('childName').value = "";
+            compressedImageBase64 = "";
+            document.getElementById('imagePreview').classList.add('hidden');
+            document.getElementById('compressStatus').classList.add('hidden');
         }
     </script>
 </body>
