@@ -25,8 +25,7 @@
             </div>
 
             <div id="recordList" class="space-y-3">
-                <p class="text-center text-gray-500 mt-4">હજુ સુધી કોઈ ડેટા નથી. નવો ડેટા ઉમેરો.</p>
-            </div>
+                </div>
         </div>
 
         <div id="addScreen" class="hidden bg-white p-4 rounded-lg shadow-md space-y-4">
@@ -37,32 +36,31 @@
                     📷 <span>ઝેરોક્ષનો ફોટો પાડો</span>
                     <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
                 </label>
-                <p class="text-xs text-gray-400 mt-2">મોબાઇલ કેમેરો ઓપન કરવા માટે ક્લિક કરો</p>
             </div>
 
-            <div id="ocrStatus" class="text-center text-sm font-semibold text-blue-600 hidden">📄 ટેક્સ્ટ સ્કેન થઈ રહી છે અને ફોટો ઓપ્ટિમાઇઝ થઈ રહ્યો છે...</div>
+            <div id="ocrStatus" class="text-center text-sm font-semibold text-blue-600 hidden">📄 ફોટો ઓપ્ટિમાઇઝ અને સ્કેન થઈ રહ્યો છે...</div>
             <img id="imagePreview" class="w-full h-48 object-contain rounded-md hidden border">
 
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs font-bold text-gray-600">બાળકનું નામ</label>
-                    <input type="text" id="childName" class="w-full p-2 border rounded bg-gray-50 focus:bg-white focus:outline-blue-500">
+                    <input type="text" id="childName" class="w-full p-2 border rounded bg-gray-50 focus:bg-white">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-600">વાલીનું નામ / આધાર વિગત</label>
-                    <textarea id="parentDetails" rows="2" class="w-full p-2 border rounded bg-gray-50 focus:bg-white focus:outline-blue-500"></textarea>
+                    <textarea id="parentDetails" rows="2" class="w-full p-2 border rounded bg-gray-50 focus:bg-white"></textarea>
                 </div>
             </div>
 
             <div class="flex space-x-2 pt-2">
                 <button onclick="saveRecord()" class="flex-1 bg-green-600 text-white py-2 rounded-lg font-bold shadow hover:bg-green-700">💾 સેવ કરો</button>
-                <button onclick="switchScreen('home')" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">કેન્સલ</button>
+                <button onclick="switchScreen('home')" class="bg-gray-500 text-white px-4 py-2 rounded-lg">કેન્સલ</button>
             </div>
         </div>
 
         <div id="detailScreen" class="hidden bg-white p-4 rounded-lg shadow-md space-y-4">
             <div class="flex justify-between items-center border-b pb-2">
-                <h2 id="detailTitle" class="text-lg font-bold text-gray-700">બાળકની વિગત</h2>
+                <h2 class="text-lg font-bold text-gray-700">બાળકની વિગત</h2>
                 <button onclick="switchScreen('home')" class="text-red-500 font-bold">✕ બંધ કરો</button>
             </div>
             
@@ -74,6 +72,7 @@
             <div>
                 <p class="text-xs font-bold text-gray-500 mb-1">📄 ઓરિજિનલ ઝેરોક્ષ નકલ:</p>
                 <img id="viewImage" class="w-full border rounded-lg shadow-inner max-h-96 object-contain bg-black">
+                <button id="deleteBtn" class="w-full mt-4 bg-red-500 text-white py-2 rounded-lg font-bold text-sm shadow hover:bg-red-600">🗑️ આ રેકોર્ડ ડીલીટ કરો</button>
             </div>
         </div>
 
@@ -89,26 +88,12 @@
     </nav>
 
     <script>
-        let db;
         let compressedImageBase64 = "";
+        let currentRecordId = null;
 
-        // IndexedDB સેટઅપ (વર્ઝન ૨ નો ઉપયોગ કરી શ્યોર સેટઅપ)
-        const request = indexedDB.open("AnganwadiDataStore", 2);
-        
-        request.onupgradeneeded = function(e) {
-            db = e.target.result;
-            if (!db.objectStoreNames.contains("records")) {
-                db.createObjectStore("records", { keyPath: "id", autoIncrement: true });
-            }
-        };
-
-        request.onsuccess = function(e) {
-            db = e.target.result;
+        // એપ લોડ થાય ત્યારે રન થાય
+        window.onload = function() {
             loadRecords();
-        };
-
-        request.onerror = function(e) {
-            console.error("Database error: ", e.target.error);
         };
 
         function switchScreen(screen) {
@@ -141,16 +126,16 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // રેઝોલ્યુશન થોડું ઓપ્ટિમાઇઝ કર્યું (ઝેરોક્ષ રીડિંગ માટે એકદમ પરફેક્ટ)
-                    const max_width = 800; 
+                    // LocalStorage માટે સાઇઝ એકદમ ઓપ્ટિમાઇઝ (600px પહોળાઈ)
+                    const max_width = 600; 
                     const scale = max_width / img.width;
                     canvas.width = max_width;
                     canvas.height = img.height * scale;
 
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     
-                    // ડેટાસાઇઝ ઘટાડવા માટે 0.6 ક્વોલિટી
-                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    // ફાઇલ સાઇઝ નાની કરવા માટે 0.5 ક્વોલિટી (બ્રાઉઝર ફ્રેન્ડલી)
+                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.5);
 
                     const imgPreview = document.getElementById('imagePreview');
                     imgPreview.src = compressedImageBase64;
@@ -166,13 +151,10 @@
             Tesseract.recognize(imageSrc, 'eng+guj')
             .then(({ data: { text } }) => {
                 document.getElementById('ocrStatus').classList.add('hidden');
-                
                 const lines = text.split('\n').filter(line => line.trim() !== '');
                 if(lines.length > 0) {
                     document.getElementById('childName').value = lines[0].trim();
                     document.getElementById('parentDetails').value = text.trim();
-                } else {
-                    document.getElementById('parentDetails').value = "";
                 }
             }).catch(err => {
                 console.error(err);
@@ -180,83 +162,70 @@
             });
         }
 
+        // LocalStorage માં સેવ કરવાનું લોજિક
         function saveRecord() {
             const name = document.getElementById('childName').value.trim();
             const details = document.getElementById('parentDetails').value.trim();
 
             if(!name || !compressedImageBase64) {
-                alert("કૃપા કરીને બાળકનું નામ અને ઝેરોક્ષનો ફોટો ચોક્કસ ઉમેરો!");
+                alert("કૃપા કરીને નામ અને ફોટો ઉમેરો!");
                 return;
             }
 
-            if (!db) {
-                alert("ડેટાબેઝ તૈયાર નથી, કૃપા કરીને પેજ રીફ્રેશ કરો.");
-                return;
-            }
-
-            const transaction = db.transaction(["records"], "readwrite");
-            const store = transaction.objectStore("records");
+            // જૂનો ડેટા મેળવો
+            let records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
             
             const newRecord = {
+                id: Date.now(), // યુનિક આઈડી
                 name: name,
                 details: details,
                 image: compressedImageBase64,
                 dateAdded: new Date().toLocaleDateString()
             };
 
-            const addRequest = store.add(newRecord);
-
-            addRequest.onsuccess = function() {
-                alert("✅ માહિતી અને ફોટો સફળતાપૂર્વક સેવ થઈ ગયા છે!");
-                document.getElementById('searchBar').value = ""; // રીસેટ સર્ચ
+            records.push(newRecord);
+            
+            try {
+                localStorage.setItem("anganwadi_records", JSON.stringify(records));
+                alert("✅ સેવ થઈ ગયું!");
+                document.getElementById('searchBar').value = "";
                 switchScreen('home');
-            };
-
-            addRequest.onerror = function(e) {
-                console.error("Error saving record:", e.target.error);
-                alert("સેવ કરવામાં સમસ્યા આવી: " + e.target.error.name);
-            };
+            } catch(e) {
+                console.error(e);
+                alert("ફોટો વધુ મોટો છે, કૃપા કરીને થોડો દૂરથી ફોટો પાડો જેથી સાઇઝ નાની રહે.");
+            }
         }
 
+        // લોડ અને લાઈવ સર્ચ
         function loadRecords(filter = "") {
             const recordList = document.getElementById('recordList');
             if(!recordList) return;
-            
             recordList.innerHTML = "";
 
-            if (!db) return;
-
-            const transaction = db.transaction(["records"], "readonly");
-            const store = transaction.objectStore("records");
-            const request = store.openCursor();
+            let records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
             let hasData = false;
 
-            request.onsuccess = function(e) {
-                const cursor = e.target.result;
-                if(cursor) {
-                    const record = cursor.value;
+            records.forEach(record => {
+                if(filter === "" || record.name.toLowerCase().includes(filter.toLowerCase()) || record.details.toLowerCase().includes(filter.toLowerCase())) {
+                    hasData = true;
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500 flex justify-between items-center cursor-pointer hover:bg-blue-50";
+                    card.onclick = () => showDetail(record);
                     
-                    // લાઇવ ફિલ્ટર સર્ચ
-                    if(filter === "" || record.name.toLowerCase().includes(filter.toLowerCase()) || record.details.toLowerCase().includes(filter.toLowerCase())) {
-                        hasData = true;
-                        const card = document.createElement('div');
-                        card.className = "bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500 flex justify-between items-center cursor-pointer hover:bg-blue-50";
-                        card.onclick = () => showDetail(record);
-                        
-                        card.innerHTML = `
-                            <div>
-                                <h3 class="font-bold text-gray-800">${record.name}</h3>
-                                <p class="text-xs text-gray-500">ઉમેર્યા તારીખ: ${record.dateAdded}</p>
-                            </div>
-                            <span class="text-blue-500 font-semibold text-sm">👁️ જુઓ</span>
-                        `;
-                        recordList.appendChild(card);
-                    }
-                    cursor.continue();
-                } else if (!hasData) {
-                    recordList.innerHTML = `<p class="text-center text-gray-500 mt-4">કોઈ રેકોર્ડ મળ્યો નથી.</p>`;
+                    card.innerHTML = `
+                        <div>
+                            <h3 class="font-bold text-gray-800">${record.name}</h3>
+                            <p class="text-xs text-gray-500">તારીખ: ${record.dateAdded}</p>
+                        </div>
+                        <span class="text-blue-500 font-semibold text-sm">👁️ જુઓ</span>
+                    `;
+                    recordList.appendChild(card);
                 }
-            };
+            });
+
+            if (!hasData) {
+                recordList.innerHTML = `<p class="text-center text-gray-500 mt-4">કોઈ રેકોર્ડ મળ્યો નથી.</p>`;
+            }
         }
 
         document.getElementById('searchBar').addEventListener('input', function(e) {
@@ -264,22 +233,30 @@
         });
 
         function showDetail(record) {
+            currentRecordId = record.id;
             document.getElementById('viewName').innerText = record.name;
             document.getElementById('viewDetails').innerText = record.details;
+            document.getElementById('viewImage').src = record.image;
             
-            const viewImg = document.getElementById('viewImage');
-            viewImg.src = record.image;
-            
+            document.getElementById('deleteBtn').onclick = () => deleteRecord(record.id);
             switchScreen('detail');
+        }
+
+        // રેકોર્ડ ડીલીટ કરવા માટે
+        function deleteRecord(id) {
+            if(confirm("શું તમે આ રેકોર્ડ ખરેખર ડીલીટ કરવા માંગો છો?")) {
+                let records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
+                records = records.filter(r => r.id !== id);
+                localStorage.setItem("anganwadi_records", JSON.stringify(records));
+                switchScreen('home');
+            }
         }
 
         function resetForm() {
             document.getElementById('childName').value = "";
             document.getElementById('parentDetails').value = "";
             compressedImageBase64 = "";
-            const imgPreview = document.getElementById('imagePreview');
-            imgPreview.src = "";
-            imgPreview.classList.add('hidden');
+            document.getElementById('imagePreview').classList.add('hidden');
             document.getElementById('ocrStatus').classList.add('hidden');
         }
     </script>
