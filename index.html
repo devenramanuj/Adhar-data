@@ -46,11 +46,11 @@
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs font-bold text-gray-600">બાળકનું નામ</label>
-                    <input type="text" id="childName" class="w-full p-2 border rounded bg-gray-50">
+                    <input type="text" id="childName" class="w-full p-2 border rounded bg-gray-50 focus:bg-white focus:outline-blue-500">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-600">વાલીનું નામ / આધાર વિગત</label>
-                    <textarea id="parentDetails" rows="2" class="w-full p-2 border rounded bg-gray-50"></textarea>
+                    <textarea id="parentDetails" rows="2" class="w-full p-2 border rounded bg-gray-50 focus:bg-white focus:outline-blue-500"></textarea>
                 </div>
             </div>
 
@@ -77,7 +77,7 @@
             </div>
         </div>
 
- main>
+    </main>
 
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-2 shadow-lg max-w-md mx-auto z-10">
         <button onclick="switchScreen('home')" class="flex flex-col items-center text-blue-600">
@@ -90,18 +90,25 @@
 
     <script>
         let db;
-        let compressedImageBase64 = ""; // ઓપ્ટિમાઇઝ થયેલો ફોટો સ્ટોર કરવા માટે
+        let compressedImageBase64 = "";
 
-        const request = indexedDB.open("AnganwadiDB", 1);
+        // IndexedDB સેટઅપ (વર્ઝન ૨ નો ઉપયોગ કરી શ્યોર સેટઅપ)
+        const request = indexedDB.open("AnganwadiDataStore", 2);
         
         request.onupgradeneeded = function(e) {
             db = e.target.result;
-            db.createObjectStore("records", { keyPath: "id", autoIncrement: true });
+            if (!db.objectStoreNames.contains("records")) {
+                db.createObjectStore("records", { keyPath: "id", autoIncrement: true });
+            }
         };
 
         request.onsuccess = function(e) {
             db = e.target.result;
             loadRecords();
+        };
+
+        request.onerror = function(e) {
+            console.error("Database error: ", e.target.error);
         };
 
         function switchScreen(screen) {
@@ -111,7 +118,7 @@
 
             if(screen === 'home') {
                 document.getElementById('homeScreen').classList.remove('hidden');
-                loadRecords();
+                loadRecords(document.getElementById('searchBar').value);
             } else if(screen === 'add') {
                 document.getElementById('addScreen').classList.remove('hidden');
                 resetForm();
@@ -131,20 +138,19 @@
                 const img = new Image();
                 img.src = event.target.result;
                 img.onload = function() {
-                    // કેનવાસનો ઉપયોગ કરીને ઈમેજની સાઈઝ નાની (Compress) કરવી
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // મેક્સિમમ ૧૦૨૪ પિક્સલ પહોળાઈ રાખવી (ઝેરોક્ષ વાંચવા માટે પૂરતી છે)
-                    const max_width = 1024;
+                    // રેઝોલ્યુશન થોડું ઓપ્ટિમાઇઝ કર્યું (ઝેરોક્ષ રીડિંગ માટે એકદમ પરફેક્ટ)
+                    const max_width = 800; 
                     const scale = max_width / img.width;
                     canvas.width = max_width;
                     canvas.height = img.height * scale;
 
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     
-                    // JPEG ફોર્મેટમાં કમ્પ્રેસ કરીને સેવ કરવું (0.7 ક્વોલિટી એટલે સાઈઝ એકદમ ઘટી જશે)
-                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    // ડેટાસાઇઝ ઘટાડવા માટે 0.6 ક્વોલિટી
+                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
 
                     const imgPreview = document.getElementById('imagePreview');
                     imgPreview.src = compressedImageBase64;
@@ -157,9 +163,8 @@
         });
 
         function runOCR(imageSrc) {
-            Tesseract.recognize(imageSrc, 'eng+guj', {
-                logger: m => console.log(m)
-            }).then(({ data: { text } }) => {
+            Tesseract.recognize(imageSrc, 'eng+guj')
+            .then(({ data: { text } }) => {
                 document.getElementById('ocrStatus').classList.add('hidden');
                 
                 const lines = text.split('\n').filter(line => line.trim() !== '');
@@ -167,7 +172,7 @@
                     document.getElementById('childName').value = lines[0].trim();
                     document.getElementById('parentDetails').value = text.trim();
                 } else {
-                    document.getElementById('parentDetails').value = "કોઈ ટેક્સ્ટ ઉકેલી શકાઈ નથી.";
+                    document.getElementById('parentDetails').value = "";
                 }
             }).catch(err => {
                 console.error(err);
@@ -184,32 +189,42 @@
                 return;
             }
 
+            if (!db) {
+                alert("ડેટાબેઝ તૈયાર નથી, કૃપા કરીને પેજ રીફ્રેશ કરો.");
+                return;
+            }
+
             const transaction = db.transaction(["records"], "readwrite");
             const store = transaction.objectStore("records");
             
             const newRecord = {
                 name: name,
                 details: details,
-                image: compressedImageBase64, // કમ્પ્રેસ થયેલી નાની સાઈઝની ઈમેજ સેવ થશે
+                image: compressedImageBase64,
                 dateAdded: new Date().toLocaleDateString()
             };
 
             const addRequest = store.add(newRecord);
 
             addRequest.onsuccess = function() {
-                alert("માહિતી અને ફોટો સફળતાપૂર્વક સેવ થઈ ગયા છે!");
+                alert("✅ માહિતી અને ફોટો સફળતાપૂર્વક સેવ થઈ ગયા છે!");
+                document.getElementById('searchBar').value = ""; // રીસેટ સર્ચ
                 switchScreen('home');
             };
 
             addRequest.onerror = function(e) {
-                console.error("Error saving:", e.target.error);
-                alert("સેવ કરવામાં ભૂલ આવી. ફોટો ઘણો મોટો હોઈ શકે છે.");
+                console.error("Error saving record:", e.target.error);
+                alert("સેવ કરવામાં સમસ્યા આવી: " + e.target.error.name);
             };
         }
 
         function loadRecords(filter = "") {
             const recordList = document.getElementById('recordList');
+            if(!recordList) return;
+            
             recordList.innerHTML = "";
+
+            if (!db) return;
 
             const transaction = db.transaction(["records"], "readonly");
             const store = transaction.objectStore("records");
@@ -221,6 +236,7 @@
                 if(cursor) {
                     const record = cursor.value;
                     
+                    // લાઇવ ફિલ્ટર સર્ચ
                     if(filter === "" || record.name.toLowerCase().includes(filter.toLowerCase()) || record.details.toLowerCase().includes(filter.toLowerCase())) {
                         hasData = true;
                         const card = document.createElement('div');
@@ -232,7 +248,7 @@
                                 <h3 class="font-bold text-gray-800">${record.name}</h3>
                                 <p class="text-xs text-gray-500">ઉમેર્યા તારીખ: ${record.dateAdded}</p>
                             </div>
-                            <span class="text-gray-400">👁️ જુઓ</span>
+                            <span class="text-blue-500 font-semibold text-sm">👁️ જુઓ</span>
                         `;
                         recordList.appendChild(card);
                     }
