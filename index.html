@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>આંગણવાડી દસ્તાવેજ સર્ચ એપ</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+
+    <header class="bg-blue-600 text-white p-4 text-center shadow-md sticky top-0 z-10">
+        <h1 class="text-xl font-bold">👶 આંગણવાડી ડિજિટલ રજીસ્ટર</h1>
+    </header>
+
+    <main class="p-4 max-w-md mx-auto pb-24">
+
+        <div id="homeScreen">
+            <div class="mb-4">
+                <input type="text" id="searchBar" placeholder="🔍 બાળકનું નામ કે આધાર નંબર લખો..." 
+                    class="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            </div>
+
+            <div id="recordList" class="space-y-3">
+                <p class="text-center text-gray-500 mt-4">હજુ સુધી કોઈ ડેટા નથી. નવો ડેટા ઉમેરો.</p>
+            </div>
+        </div>
+
+        <div id="addScreen" class="hidden bg-white p-4 rounded-lg shadow-md space-y-4">
+            <h2 class="text-lg font-bold border-b pb-2 text-gray-700">નવી એન્ટ્રી ઉમેરો</h2>
+            
+            <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 p-4 rounded-lg bg-gray-50">
+                <label class="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 inline-flex items-center space-x-2">
+                    📷 <span>ઝેરોક્ષનો ફોટો પાડો</span>
+                    <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
+                </label>
+                <p class="text-xs text-gray-400 mt-2">મોબાઇલ કેમેરો ઓપન કરવા માટે ક્લિક કરો</p>
+            </div>
+
+            <div id="ocrStatus" class="text-center text-sm font-semibold text-blue-600 hidden">📄 ટેક્સ્ટ સ્કેન થઈ રહી છે, કૃપા કરીને થોડી રાહ જુઓ...</div>
+            <img id="imagePreview" class="w-full h-48 object-contain rounded-md hidden border">
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600">બાળકનું નામ</label>
+                    <input type="text" id="childName" class="w-full p-2 border rounded bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600">વાલીનું નામ / આધાર વિગત</label>
+                    <textarea id="parentDetails" rows="2" class="w-full p-2 border rounded bg-gray-50"></textarea>
+                </div>
+            </div>
+
+            <div class="flex space-x-2 pt-2">
+                <button onclick="saveRecord()" class="flex-1 bg-green-600 text-white py-2 rounded-lg font-bold shadow hover:bg-green-700">💾 સેવ કરો</button>
+                <button onclick="switchScreen('home')" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">કેન્સલ</button>
+            </div>
+        </div>
+
+        <div id="detailScreen" class="hidden bg-white p-4 rounded-lg shadow-md space-y-4">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h2 id="detailTitle" class="text-lg font-bold text-gray-700">બાળકની વિગત</h2>
+                <button onclick="switchScreen('home')" class="text-red-500 font-bold">✕ બંધ કરો</button>
+            </div>
+            
+            <div class="bg-gray-50 p-3 rounded text-sm space-y-1">
+                <p><strong>નામ:</strong> <span id="viewName"></span></p>
+                <p><strong>વિગત:</strong> <span id="viewDetails"></span></p>
+            </div>
+
+            <div>
+                <p class="text-xs font-bold text-gray-500 mb-1">📄 ઓરિજિનલ ઝેરોક્ષ નકલ:</p>
+                <img id="viewImage" class="w-full border rounded-lg shadow-inner max-h-96 object-contain bg-black">
+            </div>
+        </div>
+
+    </main>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-2 shadow-lg max-w-md mx-auto z-10">
+        <button onclick="switchScreen('home')" class="flex flex-col items-center text-blue-600">
+            <span class="text-xl">🏠</span><span class="text-xs">હોમ / સર્ચ</span>
+        </button>
+        <button onclick="switchScreen('add')" class="flex flex-col items-center text-gray-600 hover:text-blue-600">
+            <span class="text-xl">➕</span><span class="text-xs">નવો ડેટા</span>
+        </button>
+    </nav>
+
+    <script>
+        let db;
+        // IndexedDB સેટઅપ (મોટા ફોટા સ્ટોર કરવા માટે લોકલ ડેટાબેઝ)
+        const request = indexedDB.open("AnganwadiDB", 1);
+        
+        request.onupgradeneeded = function(e) {
+            db = e.target.result;
+            db.createObjectStore("records", { keyPath: "id", autoIncrement: true });
+        };
+
+        request.onsuccess = function(e) {
+            db = e.target.result;
+            loadRecords(); // એપ ખુલે એટલે ડેટા લોડ કરો
+        };
+
+        // સ્ક્રીન બદલવા માટેનું ફંક્શન
+        function switchScreen(screen) {
+            document.getElementById('homeScreen').classList.add('hidden');
+            document.getElementById('addScreen').classList.add('hidden');
+            document.getElementById('detailScreen').classList.add('hidden');
+
+            if(screen === 'home') {
+                document.getElementById('homeScreen').classList.remove('hidden');
+                loadRecords();
+            } else if(screen === 'add') {
+                document.getElementById('addScreen').classList.remove('hidden');
+                resetForm();
+            } else if(screen === 'detail') {
+                document.getElementById('detailScreen').classList.remove('hidden');
+            }
+        }
+
+        // કેમેરા ઇનપુટ હેન્ડલર અને OCR (Tesseract) લોજિક
+        document.getElementById('cameraInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // ઈમેજ પ્રિવ્યૂ બતાવો
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imgPreview = document.getElementById('imagePreview');
+                imgPreview.src = event.target.result;
+                imgPreview.classList.remove('hidden');
+                
+                // OCR પ્રોસેસ શરૂ કરો
+                runOCR(event.target.result);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // OCR સ્કેનિંગ ફંક્શન
+        function runOCR(imageSrc) {
+            const statusDiv = document.getElementById('ocrStatus');
+            statusDiv.classList.remove('hidden');
+
+            // Tesseract.js વડે અંગ્રેજી અને ગુજરાતી અક્ષરો ઓળખવા
+            Tesseract.recognize(imageSrc, 'eng+guj', {
+                logger: m => console.log(m)
+            }).then(({ data: { text } }) => {
+                statusDiv.classList.add('hidden');
+                
+                // સ્કેન થયેલી વિગતમાંથી પહેલી લાઇન નામના ખાનામાં અને બાકીનું વિગતમાં નાખો
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                if(lines.length > 0) {
+                    document.getElementById('childName').value = lines[0].trim();
+                    document.getElementById('parentDetails').value = text.trim();
+                } else {
+                    document.getElementById('parentDetails').value = "કોઈ ટેક્સ્ટ ઉકેલી શકાઈ નથી, કૃપા કરીને જાતે લખો.";
+                }
+            }).catch(err => {
+                console.error(err);
+                statusDiv.classList.add('hidden');
+                alert("સ્કેનિંગમાં સમસ્યા આવી, પણ તમે મેન્યુઅલી વિગત ભરી શકો છો.");
+            });
+        }
+
+        // ડેટા સેવ કરવાનું લોજિક
+        function saveRecord() {
+            const name = document.getElementById('childName').value.trim();
+            const details = document.getElementById('parentDetails').value.trim();
+            const imageSrc = document.getElementById('imagePreview').src;
+
+            if(!name || imageSrc.includes('hidden')) {
+                alert("કૃપા કરીને બાળકનું નામ અને ઝેરોક્ષનો ફોટો ચોક્કસ ઉમેરો!");
+                return;
+            }
+
+            const transaction = db.transaction(["records"], "readwrite");
+            const store = transaction.objectStore("records");
+            
+            const newRecord = {
+                name: name,
+                details: details,
+                image: imageSrc, // આખી ઈમેજનો Base64 ડેટા સેવ થશે
+                dateAdded: new Date().toLocaleDateString()
+            };
+
+            store.add(newRecord);
+
+            transaction.oncomplete = function() {
+                alert("માહિતી સફળતાપૂર્વક સેવ થઈ ગઈ છે!");
+                switchScreen('home');
+            };
+        }
+
+        // ડેટા લોડ અને લાઈવ સર્ચ લોજિક
+        function loadRecords(filter = "") {
+            const recordList = document.getElementById('recordList');
+            recordList.innerHTML = "";
+
+            const transaction = db.transaction(["records"], "readonly");
+            const store = transaction.objectStore("records");
+            const request = store.openCursor();
+            let hasData = false;
+
+            request.onsuccess = function(e) {
+                const cursor = e.target.result;
+                if(cursor) {
+                    const record = cursor.value;
+                    
+                    // સર્ચ ફિલ્ટર લોજિક (નામ કે વિગત મેચ થાય તો જ બતાવો)
+                    if(filter === "" || record.name.toLowerCase().includes(filter.toLowerCase()) || record.details.toLowerCase().includes(filter.toLowerCase())) {
+                        hasData = true;
+                        const card = document.createElement('div');
+                        card.className = "bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500 flex justify-between items-center cursor-pointer hover:bg-blue-50";
+                        card.onclick = () => showDetail(record);
+                        
+                        card.innerHTML = `
+                            <div>
+                                <h3 class="font-bold text-gray-800">${record.name}</h3>
+                                <p class="text-xs text-gray-500">ઉમેર્યા તારીખ: ${record.dateAdded}</p>
+                            </div>
+                            <span class="text-gray-400">👁️ જુઓ</span>
+                        `;
+                        recordList.appendChild(card);
+                    }
+                    cursor.continue();
+                } else if (!hasData) {
+                    recordList.innerHTML = `<p class="text-center text-gray-500 mt-4">કોઈ રેકોર્ડ મળ્યો નથી.</p>`;
+                }
+            };
+        }
+
+        // સર્ચ બાર ઇવેન્ટ લિસનર
+        document.getElementById('searchBar').addEventListener('input', function(e) {
+            loadRecords(e.target.value);
+        });
+
+        // સિંગલ રેકોર્ડ અને આખી ઝેરોક્ષ જોવાનું ફંક્શન
+        function showDetail(record) {
+            document.getElementById('viewName').innerText = record.name;
+            document.getElementById('viewDetails').innerText = record.details;
+            
+            const viewImg = document.getElementById('viewImage');
+            viewImg.src = record.image;
+            
+            switchScreen('detail');
+        }
+
+        // ફોર્મ રીસેટ કરવા માટે
+        function resetForm() {
+            document.getElementById('childName').value = "";
+            document.getElementById('parentDetails').value = "";
+            const imgPreview = document.getElementById('imagePreview');
+            imgPreview.src = "";
+            imgPreview.classList.add('hidden');
+            document.getElementById('ocrStatus').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
