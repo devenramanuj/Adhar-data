@@ -40,7 +40,7 @@
                 <p class="text-xs text-gray-400 mt-2">મોબાઇલ કેમેરો ઓપન કરવા માટે ક્લિક કરો</p>
             </div>
 
-            <div id="ocrStatus" class="text-center text-sm font-semibold text-blue-600 hidden">📄 ટેક્સ્ટ સ્કેન થઈ રહી છે, કૃપા કરીને થોડી રાહ જુઓ...</div>
+            <div id="ocrStatus" class="text-center text-sm font-semibold text-blue-600 hidden">📄 ટેક્સ્ટ સ્કેન થઈ રહી છે અને ફોટો ઓપ્ટિમાઇઝ થઈ રહ્યો છે...</div>
             <img id="imagePreview" class="w-full h-48 object-contain rounded-md hidden border">
 
             <div class="space-y-3">
@@ -77,7 +77,7 @@
             </div>
         </div>
 
-    </main>
+ main>
 
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-2 shadow-lg max-w-md mx-auto z-10">
         <button onclick="switchScreen('home')" class="flex flex-col items-center text-blue-600">
@@ -90,7 +90,8 @@
 
     <script>
         let db;
-        // IndexedDB સેટઅપ (મોટા ફોટા સ્ટોર કરવા માટે લોકલ ડેટાબેઝ)
+        let compressedImageBase64 = ""; // ઓપ્ટિમાઇઝ થયેલો ફોટો સ્ટોર કરવા માટે
+
         const request = indexedDB.open("AnganwadiDB", 1);
         
         request.onupgradeneeded = function(e) {
@@ -100,10 +101,9 @@
 
         request.onsuccess = function(e) {
             db = e.target.result;
-            loadRecords(); // એપ ખુલે એટલે ડેટા લોડ કરો
+            loadRecords();
         };
 
-        // સ્ક્રીન બદલવા માટેનું ફંક્શન
         function switchScreen(screen) {
             document.getElementById('homeScreen').classList.add('hidden');
             document.getElementById('addScreen').classList.add('hidden');
@@ -120,57 +120,66 @@
             }
         }
 
-        // કેમેરા ઇનપુટ હેન્ડલર અને OCR (Tesseract) લોજિક
         document.getElementById('cameraInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
-            // ઈમેજ પ્રિવ્યૂ બતાવો
+            document.getElementById('ocrStatus').classList.remove('hidden');
+
             const reader = new FileReader();
             reader.onload = function(event) {
-                const imgPreview = document.getElementById('imagePreview');
-                imgPreview.src = event.target.result;
-                imgPreview.classList.remove('hidden');
-                
-                // OCR પ્રોસેસ શરૂ કરો
-                runOCR(event.target.result);
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    // કેનવાસનો ઉપયોગ કરીને ઈમેજની સાઈઝ નાની (Compress) કરવી
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // મેક્સિમમ ૧૦૨૪ પિક્સલ પહોળાઈ રાખવી (ઝેરોક્ષ વાંચવા માટે પૂરતી છે)
+                    const max_width = 1024;
+                    const scale = max_width / img.width;
+                    canvas.width = max_width;
+                    canvas.height = img.height * scale;
+
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    // JPEG ફોર્મેટમાં કમ્પ્રેસ કરીને સેવ કરવું (0.7 ક્વોલિટી એટલે સાઈઝ એકદમ ઘટી જશે)
+                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                    const imgPreview = document.getElementById('imagePreview');
+                    imgPreview.src = compressedImageBase64;
+                    imgPreview.classList.remove('hidden');
+                    
+                    runOCR(compressedImageBase64);
+                };
             };
             reader.readAsDataURL(file);
         });
 
-        // OCR સ્કેનિંગ ફંક્શન
         function runOCR(imageSrc) {
-            const statusDiv = document.getElementById('ocrStatus');
-            statusDiv.classList.remove('hidden');
-
-            // Tesseract.js વડે અંગ્રેજી અને ગુજરાતી અક્ષરો ઓળખવા
             Tesseract.recognize(imageSrc, 'eng+guj', {
                 logger: m => console.log(m)
             }).then(({ data: { text } }) => {
-                statusDiv.classList.add('hidden');
+                document.getElementById('ocrStatus').classList.add('hidden');
                 
-                // સ્કેન થયેલી વિગતમાંથી પહેલી લાઇન નામના ખાનામાં અને બાકીનું વિગતમાં નાખો
                 const lines = text.split('\n').filter(line => line.trim() !== '');
                 if(lines.length > 0) {
                     document.getElementById('childName').value = lines[0].trim();
                     document.getElementById('parentDetails').value = text.trim();
                 } else {
-                    document.getElementById('parentDetails').value = "કોઈ ટેક્સ્ટ ઉકેલી શકાઈ નથી, કૃપા કરીને જાતે લખો.";
+                    document.getElementById('parentDetails').value = "કોઈ ટેક્સ્ટ ઉકેલી શકાઈ નથી.";
                 }
             }).catch(err => {
                 console.error(err);
-                statusDiv.classList.add('hidden');
-                alert("સ્કેનિંગમાં સમસ્યા આવી, પણ તમે મેન્યુઅલી વિગત ભરી શકો છો.");
+                document.getElementById('ocrStatus').classList.add('hidden');
             });
         }
 
-        // ડેટા સેવ કરવાનું લોજિક
         function saveRecord() {
             const name = document.getElementById('childName').value.trim();
             const details = document.getElementById('parentDetails').value.trim();
-            const imageSrc = document.getElementById('imagePreview').src;
 
-            if(!name || imageSrc.includes('hidden')) {
+            if(!name || !compressedImageBase64) {
                 alert("કૃપા કરીને બાળકનું નામ અને ઝેરોક્ષનો ફોટો ચોક્કસ ઉમેરો!");
                 return;
             }
@@ -181,19 +190,23 @@
             const newRecord = {
                 name: name,
                 details: details,
-                image: imageSrc, // આખી ઈમેજનો Base64 ડેટા સેવ થશે
+                image: compressedImageBase64, // કમ્પ્રેસ થયેલી નાની સાઈઝની ઈમેજ સેવ થશે
                 dateAdded: new Date().toLocaleDateString()
             };
 
-            store.add(newRecord);
+            const addRequest = store.add(newRecord);
 
-            transaction.oncomplete = function() {
-                alert("માહિતી સફળતાપૂર્વક સેવ થઈ ગઈ છે!");
+            addRequest.onsuccess = function() {
+                alert("માહિતી અને ફોટો સફળતાપૂર્વક સેવ થઈ ગયા છે!");
                 switchScreen('home');
+            };
+
+            addRequest.onerror = function(e) {
+                console.error("Error saving:", e.target.error);
+                alert("સેવ કરવામાં ભૂલ આવી. ફોટો ઘણો મોટો હોઈ શકે છે.");
             };
         }
 
-        // ડેટા લોડ અને લાઈવ સર્ચ લોજિક
         function loadRecords(filter = "") {
             const recordList = document.getElementById('recordList');
             recordList.innerHTML = "";
@@ -208,7 +221,6 @@
                 if(cursor) {
                     const record = cursor.value;
                     
-                    // સર્ચ ફિલ્ટર લોજિક (નામ કે વિગત મેચ થાય તો જ બતાવો)
                     if(filter === "" || record.name.toLowerCase().includes(filter.toLowerCase()) || record.details.toLowerCase().includes(filter.toLowerCase())) {
                         hasData = true;
                         const card = document.createElement('div');
@@ -231,12 +243,10 @@
             };
         }
 
-        // સર્ચ બાર ઇવેન્ટ લિસનર
         document.getElementById('searchBar').addEventListener('input', function(e) {
             loadRecords(e.target.value);
         });
 
-        // સિંગલ રેકોર્ડ અને આખી ઝેરોક્ષ જોવાનું ફંક્શન
         function showDetail(record) {
             document.getElementById('viewName').innerText = record.name;
             document.getElementById('viewDetails').innerText = record.details;
@@ -247,10 +257,10 @@
             switchScreen('detail');
         }
 
-        // ફોર્મ રીસેટ કરવા માટે
         function resetForm() {
             document.getElementById('childName').value = "";
             document.getElementById('parentDetails').value = "";
+            compressedImageBase64 = "";
             const imgPreview = document.getElementById('imagePreview');
             imgPreview.src = "";
             imgPreview.classList.add('hidden');
