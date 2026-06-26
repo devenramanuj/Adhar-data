@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>આંગણવાડી દસ્તાવેજ સર્ચ એપ</title>
+    <title>આંગણવાડી ડિજિટલ રજીસ્ટર</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         .hidden { display: none; }
     </style>
@@ -20,12 +19,11 @@
 
         <div id="homeScreen">
             <div class="mb-4">
-                <input type="text" id="searchBar" placeholder="🔍 બાળકનું નામ કે આધાર નંબર લખો..." 
+                <input type="text" id="searchBar" placeholder="🔍 નામ કે વિગત લખીને શોધો..." 
                     class="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
             </div>
 
-            <div id="recordList" class="space-y-3">
-                </div>
+            <div id="recordList" class="space-y-3"></div>
         </div>
 
         <div id="addScreen" class="hidden bg-white p-4 rounded-lg shadow-md space-y-4">
@@ -38,17 +36,17 @@
                 </label>
             </div>
 
-            <div id="ocrStatus" class="text-center text-sm font-semibold text-blue-600 hidden">📄 ફોટો ઓપ્ટિમાઇઝ અને સ્કેન થઈ રહ્યો છે...</div>
-            <img id="imagePreview" class="w-full h-48 object-contain rounded-md hidden border">
+            <div id="compressStatus" class="text-center text-xs text-green-600 font-semibold hidden">⚡ ફોટો ઓપ્ટિમાઇઝ થઈ રહ્યો છે...</div>
+            <img id="imagePreview" class="w-full h-48 object-contain rounded-md hidden border bg-gray-100">
 
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600">બાળકનું નામ</label>
-                    <input type="text" id="childName" class="w-full p-2 border rounded bg-gray-50 focus:bg-white">
+                    <label class="block text-xs font-bold text-gray-600">બાળકનું નામ *</label>
+                    <input type="text" id="childName" placeholder="બાળકનું નામ લખો" class="w-full p-2 border rounded bg-gray-50 focus:bg-white focus:outline-blue-500">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-600">વાલીનું નામ / આધાર વિગત</label>
-                    <textarea id="parentDetails" rows="2" class="w-full p-2 border rounded bg-gray-50 focus:bg-white"></textarea>
+                    <textarea id="parentDetails" rows="2" placeholder="વાલીનું નામ કે અન્ય વિગત લખો" class="w-full p-2 border rounded bg-gray-50 focus:bg-white focus:outline-blue-500"></textarea>
                 </div>
             </div>
 
@@ -60,8 +58,8 @@
 
         <div id="detailScreen" class="hidden bg-white p-4 rounded-lg shadow-md space-y-4">
             <div class="flex justify-between items-center border-b pb-2">
-                <h2 class="text-lg font-bold text-gray-700">બાળકની વિગત</h2>
-                <button onclick="switchScreen('home')" class="text-red-500 font-bold">✕ બંધ કરો</button>
+                <h2 class="text-lg font-bold text-gray-700">દસ્તાવેજ નકલ</h2>
+                <button onclick="switchScreen('home')" class="text-red-500 font-bold text-xl">✕</button>
             </div>
             
             <div class="bg-gray-50 p-3 rounded text-sm space-y-1">
@@ -70,7 +68,7 @@
             </div>
 
             <div>
-                <p class="text-xs font-bold text-gray-500 mb-1">📄 ઓરિજિનલ ઝેરોક્ષ નકલ:</p>
+                <p class="text-xs font-bold text-gray-500 mb-1">📄 ઓરિજિનલ ઝેરોક્ષ ફોટો:</p>
                 <img id="viewImage" class="w-full border rounded-lg shadow-inner max-h-96 object-contain bg-black">
                 <button id="deleteBtn" class="w-full mt-4 bg-red-500 text-white py-2 rounded-lg font-bold text-sm shadow hover:bg-red-600">🗑️ આ રેકોર્ડ ડીલીટ કરો</button>
             </div>
@@ -89,9 +87,7 @@
 
     <script>
         let compressedImageBase64 = "";
-        let currentRecordId = null;
 
-        // એપ લોડ થાય ત્યારે રન થાય
         window.onload = function() {
             loadRecords();
         };
@@ -112,11 +108,12 @@
             }
         }
 
+        // અલ્ટ્રા ઇમેજ કમ્પ્રેસર લોજિક
         document.getElementById('cameraInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
-            document.getElementById('ocrStatus').classList.remove('hidden');
+            document.getElementById('compressStatus').classList.remove('hidden');
 
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -126,57 +123,49 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // LocalStorage માટે સાઇઝ એકદમ ઓપ્ટિમાઇઝ (600px પહોળાઈ)
-                    const max_width = 600; 
+                    // ફોટાની સાઈઝ લોકલ સ્ટોરેજ માટે એકદમ લિમિટેડ (500px પહોળાઈ) કરી દીધી
+                    const max_width = 500; 
                     const scale = max_width / img.width;
                     canvas.width = max_width;
                     canvas.height = img.height * scale;
 
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     
-                    // ફાઇલ સાઇઝ નાની કરવા માટે 0.5 ક્વોલિટી (બ્રાઉઝર ફ્રેન્ડલી)
-                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.5);
+                    // ગુણવત્તા 0.4 (40%) જેથી સાઈઝ ૧૫૦ KB ની અંદર આવી જાય અને આસાનીથી સેવ થાય
+                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.4);
 
                     const imgPreview = document.getElementById('imagePreview');
                     imgPreview.src = compressedImageBase64;
                     imgPreview.classList.remove('hidden');
-                    
-                    runOCR(compressedImageBase64);
+                    document.getElementById('compressStatus').classList.add('hidden');
                 };
             };
             reader.readAsDataURL(file);
         });
 
-        function runOCR(imageSrc) {
-            Tesseract.recognize(imageSrc, 'eng+guj')
-            .then(({ data: { text } }) => {
-                document.getElementById('ocrStatus').classList.add('hidden');
-                const lines = text.split('\n').filter(line => line.trim() !== '');
-                if(lines.length > 0) {
-                    document.getElementById('childName').value = lines[0].trim();
-                    document.getElementById('parentDetails').value = text.trim();
-                }
-            }).catch(err => {
-                console.error(err);
-                document.getElementById('ocrStatus').classList.add('hidden');
-            });
-        }
-
-        // LocalStorage માં સેવ કરવાનું લોજિક
+        // સેવ ફંક્શન
         function saveRecord() {
             const name = document.getElementById('childName').value.trim();
             const details = document.getElementById('parentDetails').value.trim();
 
-            if(!name || !compressedImageBase64) {
-                alert("કૃપા કરીને નામ અને ફોટો ઉમેરો!");
+            if(!name) {
+                alert("કૃપા કરીને બાળકનું નામ લખો!");
+                return;
+            }
+            if(!compressedImageBase64) {
+                alert("કૃપા કરીને ઝેરોક્ષનો ફોટો પાડો!");
                 return;
             }
 
-            // જૂનો ડેટા મેળવો
-            let records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
+            let records = [];
+            try {
+                records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
+            } catch(e) {
+                records = [];
+            }
             
             const newRecord = {
-                id: Date.now(), // યુનિક આઈડી
+                id: Date.now(),
                 name: name,
                 details: details,
                 image: compressedImageBase64,
@@ -187,22 +176,28 @@
             
             try {
                 localStorage.setItem("anganwadi_records", JSON.stringify(records));
-                alert("✅ સેવ થઈ ગયું!");
+                alert("✅ રેકોર્ડ સફળતાપૂર્વક સેવ થયો!");
                 document.getElementById('searchBar').value = "";
                 switchScreen('home');
             } catch(e) {
                 console.error(e);
-                alert("ફોટો વધુ મોટો છે, કૃપા કરીને થોડો દૂરથી ફોટો પાડો જેથી સાઇઝ નાની રહે.");
+                alert("ભૂલ આવી: ફોટો બ્રાઉઝર મેમરી કરતા મોટો છે. કૃપા કરીને થોડો દૂરથી કે કેમેરાનું રિઝોલ્યુશન ઓછું કરીને ટ્રાય કરો.");
             }
         }
 
-        // લોડ અને લાઈવ સર્ચ
+        // રેકોર્ડ લોડ કરવા
         function loadRecords(filter = "") {
             const recordList = document.getElementById('recordList');
             if(!recordList) return;
             recordList.innerHTML = "";
 
-            let records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
+            let records = [];
+            try {
+                records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
+            } catch(e) {
+                records = [];
+            }
+            
             let hasData = false;
 
             records.forEach(record => {
@@ -233,7 +228,6 @@
         });
 
         function showDetail(record) {
-            currentRecordId = record.id;
             document.getElementById('viewName').innerText = record.name;
             document.getElementById('viewDetails').innerText = record.details;
             document.getElementById('viewImage').src = record.image;
@@ -242,7 +236,6 @@
             switchScreen('detail');
         }
 
-        // રેકોર્ડ ડીલીટ કરવા માટે
         function deleteRecord(id) {
             if(confirm("શું તમે આ રેકોર્ડ ખરેખર ડીલીટ કરવા માંગો છો?")) {
                 let records = JSON.parse(localStorage.getItem("anganwadi_records")) || [];
@@ -257,7 +250,7 @@
             document.getElementById('parentDetails').value = "";
             compressedImageBase64 = "";
             document.getElementById('imagePreview').classList.add('hidden');
-            document.getElementById('ocrStatus').classList.add('hidden');
+            document.getElementById('compressStatus').classList.add('hidden');
         }
     </script>
 </body>
